@@ -1,11 +1,17 @@
-# UE build artifacts
+# UE build artifacts (direct + nested)
+NoobStage1/Binaries/
+NoobStage1/DerivedDataCache/
+NoobStage1/Intermediate/
+NoobStage1/Saved/
+NoobStage1/.vscode/
+
 NoobStage1/**/Binaries/
 NoobStage1/**/DerivedDataCache/
 NoobStage1/**/Intermediate/
 NoobStage1/**/Saved/
 NoobStage1/**/.vscode/
 
-# Rebuildable native libs (produced by docker/build-simlibs.sh)
+# Rebuildable native libs
 NoobStage1/**/Plugins/ProjectAirSim/SimLibs/
 
 # Local logs/workspace
