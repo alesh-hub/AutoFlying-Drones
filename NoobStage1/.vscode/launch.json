@@ -1,0 +1,121 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Launch NoobStage1 (Debug)",
+			"request": "launch",
+			"program": "/home/ale/dev/drone_project/NoobStage1/Binaries/Linux/UnrealGame-Linux-Debug",
+			"preLaunchTask": "NoobStage1 Linux Debug Build",
+			"args": [
+			],
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0",
+			"type": "cppdbg",
+			"visualizerFile": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+			"showDisplayString": true
+		},
+		{
+			"name": "Launch NoobStage1 (DebugGame)",
+			"request": "launch",
+			"program": "/home/ale/dev/drone_project/NoobStage1/Binaries/Linux/UnrealGame-Linux-DebugGame",
+			"preLaunchTask": "NoobStage1 Linux DebugGame Build",
+			"args": [
+			],
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0",
+			"type": "cppdbg",
+			"visualizerFile": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+			"showDisplayString": true
+		},
+		{
+			"name": "Launch NoobStage1 (Development)",
+			"request": "launch",
+			"program": "/home/ale/dev/drone_project/NoobStage1/Binaries/Linux/UnrealGame",
+			"preLaunchTask": "NoobStage1 Linux Development Build",
+			"args": [
+			],
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0",
+			"type": "cppdbg",
+			"visualizerFile": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+			"showDisplayString": true
+		},
+		{
+			"name": "Launch NoobStage1 (Test)",
+			"request": "launch",
+			"program": "/home/ale/dev/drone_project/NoobStage1/Binaries/Linux/UnrealGame-Linux-Test",
+			"preLaunchTask": "NoobStage1 Linux Test Build",
+			"args": [
+			],
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0",
+			"type": "cppdbg",
+			"visualizerFile": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+			"showDisplayString": true
+		},
+		{
+			"name": "Launch NoobStage1 (Shipping)",
+			"request": "launch",
+			"program": "/home/ale/dev/drone_project/NoobStage1/Binaries/Linux/UnrealGame-Linux-Shipping",
+			"preLaunchTask": "NoobStage1 Linux Shipping Build",
+			"args": [
+			],
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0",
+			"type": "cppdbg",
+			"visualizerFile": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+			"showDisplayString": true
+		},
+		{
+			"name": "Launch NoobStage1Editor (Debug)",
+			"request": "launch",
+			"program": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Binaries/Linux/UnrealEditor-Linux-Debug",
+			"preLaunchTask": "NoobStage1Editor Linux Debug Build",
+			"args": [
+				"/home/ale/dev/drone_project/NoobStage1/NoobStage1.uproject"
+			],
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0",
+			"type": "cppdbg",
+			"visualizerFile": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+			"showDisplayString": true
+		},
+		{
+			"name": "Launch NoobStage1Editor (DebugGame)",
+			"request": "launch",
+			"program": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Binaries/Linux/UnrealEditor-Linux-DebugGame",
+			"preLaunchTask": "NoobStage1Editor Linux DebugGame Build",
+			"args": [
+				"/home/ale/dev/drone_project/NoobStage1/NoobStage1.uproject"
+			],
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0",
+			"type": "cppdbg",
+			"visualizerFile": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+			"showDisplayString": true
+		},
+		{
+			"name": "Launch NoobStage1Editor (Development)",
+			"request": "launch",
+			"program": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Binaries/Linux/UnrealEditor",
+			"preLaunchTask": "NoobStage1Editor Linux Development Build",
+			"args": [
+				"/home/ale/dev/drone_project/NoobStage1/NoobStage1.uproject"
+			],
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0",
+			"type": "cppdbg",
+			"visualizerFile": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+			"showDisplayString": true
+		},
+		{
+			"name": "Generate Project Files",
+			"type": "coreclr",
+			"request": "launch",
+			"program": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Build/BatchFiles/RunUBT.bat",
+			"args": [
+				"-projectfiles",
+				"-vscode",
+				"-project=/home/ale/dev/drone_project/NoobStage1/NoobStage1.uproject",
+				"-game",
+				"-engine"
+			],
+			"console": "internalConsole",
+			"internalConsoleOptions": "openOnSessionStart",
+			"stopAtEntry": false,
+			"cwd": "/opt/Linux_Unreal_Engine_5.2.0"
+		}
+	]
+}

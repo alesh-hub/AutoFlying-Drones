@@ -1,0 +1,19 @@
+# UE build artifacts
+NoobStage1/**/Binaries/
+NoobStage1/**/DerivedDataCache/
+NoobStage1/**/Intermediate/
+NoobStage1/**/Saved/
+NoobStage1/**/.vscode/
+
+# Rebuildable native libs (produced by docker/build-simlibs.sh)
+NoobStage1/**/Plugins/ProjectAirSim/SimLibs/
+
+# Local logs/workspace
+NoobStage1/**/projectairsim_server.log
+NoobStage1/**/NoobStage1.code-workspace
+
+# Python
+clients/python/.venv/
+__pycache__/
+*.pyc
+

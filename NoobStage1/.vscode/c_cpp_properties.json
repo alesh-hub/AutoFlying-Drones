@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "name": "NoobStage1Editor Editor Linux Development (NoobStage1)",
+            "compilerPath": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/ThirdPartyNotUE/SDKs/HostLinux/Linux_x64/v21_clang-15.0.1-centos7/x86_64-unknown-linux-gnu/bin/clang++",
+            "compilerArgs": [
+                "-isysroot",
+                "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/ThirdPartyNotUE/SDKs/HostLinux/Linux_x64/v21_clang-15.0.1-centos7/x86_64-unknown-linux-gnu"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64",
+            "configurationProvider": "epic.ue",
+            "compileCommands": [
+                "/home/ale/dev/drone_project/NoobStage1/.vscode/compileCommands_NoobStage1.json"
+            ]
+        },
+        {
+            "name": "Linux",
+            "compilerPath": "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/ThirdPartyNotUE/SDKs/HostLinux/Linux_x64/v21_clang-15.0.1-centos7/x86_64-unknown-linux-gnu/bin/clang++",
+            "compilerArgs": [
+                "-isysroot",
+                "/opt/Linux_Unreal_Engine_5.2.0/Engine/Extras/ThirdPartyNotUE/SDKs/HostLinux/Linux_x64/v21_clang-15.0.1-centos7/x86_64-unknown-linux-gnu"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64",
+            "configurationProvider": "epic.ue",
+            "compileCommands": [
+                "/home/ale/dev/drone_project/NoobStage1/.vscode/compileCommands_Default.json"
+            ]
+        }
+    ],
+    "version": 4
+}
