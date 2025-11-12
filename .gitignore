@@ -23,3 +23,10 @@ clients/python/.venv/
 __pycache__/
 *.pyc
 
+# UE runtime/editor logs & crashes
+NoobStage1/**/Saved/Logs/**
+NoobStage1/**/Crashes/**
+
+# Project AirSim server & client logs
+NoobStage1/projectairsim_server.log
+python/**/projectairsim_client.log
