@@ -148,7 +148,7 @@ def main():
     )
 
     # Save final model
-    model.save("ppo_nav_open_space_500k_frontspeed_easy")
+    model.save("ppo_nav_open_space_500k_aggro_v2")
 
     wandb_run.finish()
     env.close()
