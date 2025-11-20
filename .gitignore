@@ -30,3 +30,34 @@ NoobStage1/**/Crashes/**
 # Project AirSim server & client logs
 NoobStage1/projectairsim_server.log
 python/**/projectairsim_client.log
+
+# --- Unreal build/runtime folders (Linux packaged build)
+Linux/
+Linux/**
+
+# --- Unreal Maps that are not in source control (only LFS tracked ones should be committed explicitly)
+NoobStage1/Content/**/Paks/
+NoobStage1/Build/
+NoobStage1/Samples/
+
+# --- Python training artifacts
+python/checkpoints/
+python/models/
+python/runs/
+python/wandb/
+python/**/*.zip
+
+# --- Python temp & debug scripts not meant for versioning
+python/scripts/debug_*.py
+
+# --- Python environment metadata
+python/**/__pycache__/
+python/**/.pytest_cache/
+
+# --- AirSim simulation config or large files you don’t want tracked
+python/sim_config/**/*.binvox
+python/sim_config/**/*.plan
+
+# --- Logs
+*.log
+
