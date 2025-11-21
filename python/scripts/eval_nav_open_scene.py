@@ -51,7 +51,7 @@ def main():
     parser.add_argument(
         "--model-path",
         type=str,
-        default="ppo_nav_open_space_basic.zip",
+        default="ppo_nav_open_space_500k_rebuilt.zip",
         help="Path to the trained PPO model .zip.",
     )
     parser.add_argument(

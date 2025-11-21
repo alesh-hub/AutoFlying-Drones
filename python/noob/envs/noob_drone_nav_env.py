@@ -64,7 +64,12 @@ class NoobNavOpenSpaceEnv(gym.Env):
 
         self._last_position = (0.0, 0.0, 0.0)
         self._last_velocity = (0.0, 0.0, 0.0)   
-        self._last_yaw = 0.0                    
+        self._last_yaw = 0.0
+
+        self._episode_step = 0
+        self._current_wp_idx = 0
+        self._prev_dist_to_wp = None  # legacy (can keep for debugging)
+        self._prev_dists_to_wps = None  # NEW: list of per-waypoint distances                 
 
         self.waypoint_pattern = waypoint_pattern
 
@@ -352,8 +357,10 @@ class NoobNavOpenSpaceEnv(gym.Env):
         self._episode_step = 0
         self._current_wp_idx = 0
         self._prev_dist_to_wp = None
+        self._prev_dists_to_wps = None  
 
         self._reset_call_count += 1
+
         if self.debug_state_structure:
             print(f"\n=== RESET CALLED #{self._reset_call_count} ===")
 
@@ -541,140 +548,42 @@ class NoobNavOpenSpaceEnv(gym.Env):
         return obs
 
 
-    def _compute_reward_and_done(self, obs):
-        """
-        Simple shaping + altitude shaping + early termination if we get too close to ground.
-
-        Reward components:
-          - 0.5 * progress toward current waypoint (change in distance)
-          - small per-step time penalty
-          - +15 on waypoint reached, +30 when final waypoint reached
-          - +altitude_bonus when altitude is in [1.9m, 4.0m] above ground
-          - -50 and done=True when we get within GROUND_HIT_TOL of the ground
-        """
-        # Latest position from _get_obs (NED-ish: z ~ 0 near ground, negative is up)
-        x, y, z = self._last_position
-
-        # Denormalize first 3 obs entries into approximate dx, dy, dz
-        dx, dy, dz = [obs[i] * self._obs_scale[i] for i in range(3)]
-        dist_to_wp = math.sqrt(dx * dx + dy * dy + dz * dz)
-
-        prev_dist = self._prev_dist_to_wp
-        if prev_dist is None:
-            prev_dist = dist_to_wp
-        progress = prev_dist - dist_to_wp
-
-        self._prev_dist_to_wp = dist_to_wp
-
-        time_penalty = -0.05
-        reward = 2.0 * progress + time_penalty
-
-        # Altitude above ground (positive upwards)
-        altitude_m = abs(z - self.GROUND_Z_AT_REST)
-
-        # # Altitude shaping: small bonus for being between 1.7m and 4m above ground
-        # altitude_low = 1.7
-        # altitude_high = 4.0
-        # altitude_bonus = 0.02
-        # if altitude_low <= altitude_m <= altitude_high:
-        #     reward += altitude_bonus
-
-        done = False
-        info: Dict[str, Any] = {
-            "dist_to_wp": dist_to_wp,
-            "current_wp_idx": self._current_wp_idx,
-            "altitude_m": altitude_m,
-        }
-
-        # 1) Waypoint reached?
-        wp_reached = dist_to_wp < 1.0
-        if wp_reached:
-            reward += 30.0
-            self._current_wp_idx += 1
-            self._prev_dist_to_wp = None
-
-            if self._current_wp_idx >= len(self.waypoints):
-                reward += 60.0
-                done = True
-                info["success"] = True
-
-        # 2) Ground-hit termination (unchanged logic)
-        ground_threshold = self.GROUND_Z_AT_REST - self.GROUND_HIT_TOL
-
-        if z > ground_threshold:
-            reward -= 50.0
-            done = True
-            info["ground_hit"] = True
-
-            if self.debug_state_structure:
-                print(
-                    f"[GROUND HIT] z={z:.3f}, ground_z={self.GROUND_Z_AT_REST:.3f}, "
-                    f"vertical_dist={altitude_m:.3f}, tol={self.GROUND_HIT_TOL:.3f}, "
-                    f"dist_to_wp={dist_to_wp:.2f}"
-                )
-
-        # 3) Optional workspace bounds (still off for now)
-        return reward, done, info
-    
     # def _compute_reward_and_done(self, obs):
     #     """
+    #     Simple shaping + altitude shaping + early termination if we get too close to ground.
+
     #     Reward components:
     #       - 0.5 * progress toward current waypoint (change in distance)
-    #       - per-step time penalty (discourage loitering)
-    #       - + speed_bonus for moving fast in the body-forward direction
-    #         while roughly facing the waypoint
-    #       - +20 on waypoint reached (within 1.0m), +40 when final waypoint reached
+    #       - small per-step time penalty
+    #       - +15 on waypoint reached, +30 when final waypoint reached
+    #       - +altitude_bonus when altitude is in [1.9m, 4.0m] above ground
     #       - -50 and done=True when we get within GROUND_HIT_TOL of the ground
     #     """
     #     # Latest position from _get_obs (NED-ish: z ~ 0 near ground, negative is up)
     #     x, y, z = self._last_position
-    #     vx, vy, vz = self._last_velocity
-    #     yaw = self._last_yaw
 
     #     # Denormalize first 3 obs entries into approximate dx, dy, dz
     #     dx, dy, dz = [obs[i] * self._obs_scale[i] for i in range(3)]
-    #     dist_to_wp = math.sqrt(dx * dx + dy * dy + dz * dz) + 1e-6  # avoid zero
+    #     dist_to_wp = math.sqrt(dx * dx + dy * dy + dz * dz)
 
     #     prev_dist = self._prev_dist_to_wp
     #     if prev_dist is None:
     #         prev_dist = dist_to_wp
     #     progress = prev_dist - dist_to_wp
+
     #     self._prev_dist_to_wp = dist_to_wp
 
-    #     # Base reward: progress + small time penalty
-    #     time_penalty = -0.02
-    #     reward = 0.5 * progress + time_penalty
+    #     time_penalty = -0.05
+    #     reward = 1.0 * progress + time_penalty
 
-    #     # -------- Heading-aware forward-speed bonus --------
-    #     # Body-forward speed from world-frame velocity and yaw.
-    #     # (Assumes AirSim NED: x forward, y right, z down)
-    #     v_forward = vx * math.cos(yaw) + vy * math.sin(yaw)
-
-    #     # Direction from drone to waypoint in XY (normalized)
-    #     dir_wp_x = dx / dist_to_wp
-    #     dir_wp_y = dy / dist_to_wp
-
-    #     # Drone heading unit vector in XY plane
-    #     heading_x = math.cos(yaw)
-    #     heading_y = math.sin(yaw)
-
-    #     # Alignment ∈ [-1, 1]; 1 == facing waypoint, -1 == facing away.
-    #     alignment = dir_wp_x * heading_x + dir_wp_y * heading_y
-    #     alignment = max(alignment, 0.0)  # ignore if facing away
-
-    #     # Only reward positive forward speed, scaled by alignment
-    #     # If v_forward ≈ 5 m/s and alignment≈1, bonus ≈ 0.1
-    #     speed_weight = 0.02
-    #     speed_bonus = speed_weight * max(v_forward, 0.0) * alignment
-    #     reward += speed_bonus
+    #     # Altitude above ground (positive upwards)
+    #     altitude_m = abs(z - self.GROUND_Z_AT_REST)
 
     #     done = False
     #     info: Dict[str, Any] = {
     #         "dist_to_wp": dist_to_wp,
     #         "current_wp_idx": self._current_wp_idx,
-    #         "altitude_m": abs(z - self.GROUND_Z_AT_REST),
-    #         "v_forward": v_forward,
-    #         "heading_alignment": alignment,
+    #         "altitude_m": altitude_m,
     #     }
 
     #     # 1) Waypoint reached?
@@ -689,7 +598,7 @@ class NoobNavOpenSpaceEnv(gym.Env):
     #             done = True
     #             info["success"] = True
 
-    #     # 2) Ground-hit termination
+    #     # 2) Ground-hit termination (unchanged logic)
     #     ground_threshold = self.GROUND_Z_AT_REST - self.GROUND_HIT_TOL
 
     #     if z > ground_threshold:
@@ -700,11 +609,195 @@ class NoobNavOpenSpaceEnv(gym.Env):
     #         if self.debug_state_structure:
     #             print(
     #                 f"[GROUND HIT] z={z:.3f}, ground_z={self.GROUND_Z_AT_REST:.3f}, "
-    #                 f"vertical_dist={info['altitude_m']:.3f}, tol={self.GROUND_HIT_TOL:.3f}, "
+    #                 f"vertical_dist={altitude_m:.3f}, tol={self.GROUND_HIT_TOL:.3f}, "
+    #                 f"dist_to_wp={dist_to_wp:.2f}"
+    #             )
+
+    #     # 3) Optional workspace bounds (still off for now)
+    #     return reward, done, info
+
+    # def _compute_reward_and_done(self, obs):
+    #     """
+    #     Reward design:
+
+    #       - Dense progress term toward the *current* waypoint:
+    #             r_progress = k_prog * (prev_dist - dist)
+    #       - Small time penalty per step
+    #       - Small heading-alignment bonus based on velocity vs dir-to-wp
+    #       - +10 on waypoint reached, +20 extra when final waypoint reached
+    #       - -50 and done=True when we get within GROUND_HIT_TOL of the ground
+    #     """
+    #     # Latest position from _get_obs
+    #     x, y, z = self._last_position
+    #     vx, vy, vz = self._last_velocity
+
+    #     # Denormalize first 3 obs entries into approximate dx, dy, dz
+    #     dx, dy, dz = [obs[i] * self._obs_scale[i] for i in range(3)]
+    #     dist_to_wp = math.sqrt(dx * dx + dy * dy + dz * dz)
+
+    #     # Progress toward current waypoint
+    #     prev_dist = self._prev_dist_to_wp
+    #     if prev_dist is None:
+    #         prev_dist = dist_to_wp
+    #     progress = prev_dist - dist_to_wp
+    #     self._prev_dist_to_wp = dist_to_wp
+
+    #     # --- Reward terms ---
+
+    #     # 1) Progress term (main driver)
+    #     k_prog = 2.0  # scale up a bit so it's comfortably > time penalty
+    #     r_progress = k_prog * progress
+
+    #     # 2) Small per-step time penalty
+    #     time_penalty = -0.01
+    #     r_time = time_penalty
+
+    #     # 3) Heading alignment: encourage velocity toward the waypoint
+    #     # Use only XY for heading (ignore vertical component here)
+    #     v_xy_norm = math.hypot(vx, vy)
+    #     dir_xy_norm = math.hypot(dx, dy)
+    #     r_heading = 0.0
+    #     if v_xy_norm > 1e-3 and dir_xy_norm > 1e-3:
+    #         # Unit vectors in XY
+    #         v_hat_x = vx / v_xy_norm
+    #         v_hat_y = vy / v_xy_norm
+    #         d_hat_x = dx / dir_xy_norm
+    #         d_hat_y = dy / dir_xy_norm
+    #         cos_theta = v_hat_x * d_hat_x + v_hat_y * d_hat_y  # in [-1, 1]
+
+    #         k_head = 0.1
+    #         r_heading = k_head * cos_theta
+
+    #     reward = r_progress + r_time + r_heading
+
+    #     # Altitude relative to ground (positive upwards)
+    #     altitude_m = abs(z - self.GROUND_Z_AT_REST)
+
+    #     done = False
+    #     info: Dict[str, Any] = {
+    #         "dist_to_wp": dist_to_wp,
+    #         "current_wp_idx": self._current_wp_idx,
+    #         "altitude_m": altitude_m,
+    #         "progress": progress,
+    #     }
+
+    #     # 1) Waypoint reached
+    #     wp_reached = dist_to_wp < 1.0
+    #     if wp_reached:
+    #         reward += 10.0
+    #         self._current_wp_idx += 1
+    #         self._prev_dist_to_wp = None  # reset progress reference
+
+    #         if self._current_wp_idx >= len(self.waypoints):
+    #             reward += 20.0
+    #             done = True
+    #             info["success"] = True
+
+    #     # 2) Ground-hit termination
+    #     ground_threshold = self.GROUND_Z_AT_REST - self.GROUND_HIT_TOL
+    #     if z > ground_threshold:
+    #         reward -= 50.0
+    #         done = True
+    #         info["ground_hit"] = True
+
+    #         if self.debug_state_structure:
+    #             print(
+    #                 f"[GROUND HIT] z={z:.3f}, ground_z={self.GROUND_Z_AT_REST:.3f}, "
+    #                 f"vertical_dist={altitude_m:.3f}, tol={self.GROUND_HIT_TOL:.3f}, "
     #                 f"dist_to_wp={dist_to_wp:.2f}"
     #             )
 
     #     return reward, done, info
+
+
+    def _compute_reward_and_done(self, obs):
+        """
+        Reward design v2 (no explicit speed bonus):
+
+          - Strong progress term toward the *current* waypoint:
+                r_progress = k_prog * (prev_dist - dist)
+          - Very small per-step time penalty
+          - Small heading-alignment bonus based on velocity vs dir-to-wp
+          - Moderate waypoint bonuses
+          - Moderate (not insane) crash penalty
+        """
+        # Latest position and velocity from _get_obs
+        x, y, z = self._last_position
+        vx, vy, vz = self._last_velocity
+
+        # --- Distances ---
+        dx, dy, dz = [obs[i] * self._obs_scale[i] for i in range(3)]
+        dist_to_wp = math.sqrt(dx * dx + dy * dy + dz * dz)
+
+        # --- Progress term ---
+        prev_dist = self._prev_dist_to_wp
+        if prev_dist is None:
+            prev_dist = dist_to_wp
+        progress = prev_dist - dist_to_wp
+        self._prev_dist_to_wp = dist_to_wp
+
+        # Stronger progress scale
+        k_prog = 5.0   # was 2.0
+        r_progress = k_prog * progress
+
+        # --- Time penalty (very small) ---
+        time_penalty = -0.002   # was -0.01
+        r_time = time_penalty
+
+        # --- Heading alignment (same structure, slightly lighter) ---
+        v_xy_norm = math.hypot(vx, vy)
+        dir_xy_norm = math.hypot(dx, dy)
+        r_heading = 0.0
+        if v_xy_norm > 1e-3 and dir_xy_norm > 1e-3:
+            v_hat_x = vx / v_xy_norm
+            v_hat_y = vy / v_xy_norm
+            d_hat_x = dx / dir_xy_norm
+            d_hat_y = dy / dir_xy_norm
+            cos_theta = v_hat_x * d_hat_x + v_hat_y * d_hat_y  # [-1, 1]
+
+            k_head = 0.05  # smaller than before
+            r_heading = k_head * cos_theta
+
+        reward = r_progress + r_time + r_heading
+
+        # Altitude only used for info + ground check
+        altitude_m = abs(z - self.GROUND_Z_AT_REST)
+
+        done = False
+        info: Dict[str, Any] = {
+            "dist_to_wp": dist_to_wp,
+            "current_wp_idx": self._current_wp_idx,
+            "altitude_m": altitude_m,
+            "progress": progress,
+        }
+
+        # --- Waypoint reached ---
+        wp_reached = dist_to_wp < 1.0
+        if wp_reached:
+            reward += 5.0    # was 10.0
+            self._current_wp_idx += 1
+            self._prev_dist_to_wp = None  # reset progress reference
+
+            if self._current_wp_idx >= len(self.waypoints):
+                reward += 10.0   # was 20.0
+                done = True
+                info["success"] = True
+
+        # --- Ground-hit termination ---
+        ground_threshold = self.GROUND_Z_AT_REST - self.GROUND_HIT_TOL
+        if z > ground_threshold:
+            reward -= 10.0      # was 50.0
+            done = True
+            info["ground_hit"] = True
+
+            if self.debug_state_structure:
+                print(
+                    f"[GROUND HIT] z={z:.3f}, ground_z={self.GROUND_Z_AT_REST:.3f}, "
+                    f"vertical_dist={altitude_m:.3f}, tol={self.GROUND_HIT_TOL:.3f}, "
+                    f"dist_to_wp={dist_to_wp:.2f}"
+                )
+
+        return reward, done, info
 
 
 

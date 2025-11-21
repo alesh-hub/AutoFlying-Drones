@@ -132,7 +132,7 @@ def main():
     checkpoint_callback = CheckpointCallback(
         save_freq=100_000,
         save_path="./checkpoints",
-        name_prefix="ppo_nav_open_space_frontspeed_easy",
+        name_prefix="ppo_nav_open_space_20m_rebuilt",
     )
 
     wandb_callback = WandbCallback(
@@ -148,7 +148,7 @@ def main():
     )
 
     # Save final model
-    model.save("ppo_nav_open_space_500k_aggro_v2")
+    model.save("ppo_nav_open_space_500k_rebuilt")
 
     wandb_run.finish()
     env.close()
